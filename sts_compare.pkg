@@ -1,0 +1,4 @@
+v 1.0
+d IPA-GH Stata Program to compare contract request with STS Database
+f sts_compare.ado
+f sts_compare.dlg

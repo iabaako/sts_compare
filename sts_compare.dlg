@@ -1,0 +1,42 @@
+/* Title	: sts_compare
+   Purpose	: Dialog Box for using sts_compare.ado
+   Date		: 14oct2017
+   Author	: Ishmail Azindoo Baako
+			  iabaako@poverty-action.org
+*/
+
+*! version 1.0 Ishmail Azindoo Baako (IPA)
+
+VERSION 13.1
+
+POSITION 300 200 600 250 50
+
+DIALOG main, label("sts_compare - Compare Contract Request to STS Database") tabtitle("Main")
+BEGIN
+  TEXT     tx_req      	10  10	120	., label("Select Contract Request file")
+  FILE 	   fl_req		10	+20	580	., label("Browse ...") error("select contract request") filter(*.xlsx)
+  TEXT	   tx_db		10  +40 120	., label("Select Short Term Staff Database")
+  FILE 	   fl_db		10	+20	580 ., label("Browse ...") error("select sts database") filter(*.xlsx)
+  TEXT	   tx_out		10	+40 120	., label("Specify Output Files")
+  FILE 	   fl_out		10	+20 580 ., label("Save As ...") error("specify output file") save filter(*.xlsx)
+END
+
+OK ok1,      label("OK")
+CANCEL can1, label("Cancel")
+HELP hlp1,   view("help sts_compare")
+RESET res1
+COPY copy1
+
+PROGRAM command
+BEGIN
+    put "sts_compare using "
+    require main.fl_req 
+    put `"""' main.fl_req `"""' 
+	put ", database("
+    require main.fl_db
+    put `"""' main.fl_db `"""' 
+    put ") outfile("
+	require main.fl_out
+	put `"""' main.fl_out `"""'
+	put ")"
+END
