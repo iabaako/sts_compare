@@ -15,7 +15,7 @@ DIALOG main, label("sts_compare - Compare Contract Request to STS Database") tab
 BEGIN
   TEXT     tx_req      	10  10	120	., label("Select Contract Request file")
   FILE 	   fl_req		10	+20	580	., label("Browse ...") error("select contract request") filter(*.xlsx)
-  TEXT	   tx_db		10  +40 120	., label("Select Short Term Staff Database")
+  TEXT	   tx_db		10  +40 200	., label("Select Short Term Staff Database")
   FILE 	   fl_db		10	+20	580 ., label("Browse ...") error("select sts database") filter(*.xlsx)
   TEXT	   tx_out		10	+40 120	., label("Specify Output Files")
   FILE 	   fl_out		10	+20 580 ., label("Save As ...") error("specify output file") save filter(*.xlsx)

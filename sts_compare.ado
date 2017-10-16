@@ -190,13 +190,13 @@ program define sts_compare
 			cap replace request_unique_id 	= `request_unique_id_`i'' 	if request_row == `request_row_`i''
 			cap replace request_phonenumber = "`request_phonenumber_`i''" 	if request_row == `request_row_`i''
 			cap replace request_email 		= "`request_email_`i''" 		if request_row == `request_row_`i''
-			cap replace request_nhis 		= "`request_nhis_`i''" 			if request_row == `request_row_`i''
+			cap replace request_nhis 		= `request_nhis_`i''			if request_row == `request_row_`i''
 			replace request_fullname 		= "`request_fullname_`i''" 		if request_row == `request_row_`i''
 
 			* Replace match markers
-			cap replace unique_id_matched 	= 1 if database_uniqueid_id 	== `request_unique_id_`i'' & request_row == `request_row_`i'' 
-			cap replace email_matched 		= 1 if database_email 			== "`request_email_`i''" & request_row == `request_row_`i'' 				
-			cap replace nhis_matched 		= 1 if database_nhis 			== "`request_nhis_`i''" & request_row == `request_row_`i'' 				
+			cap replace unique_id_matched 	= 1 if database_unique_id 	== request_unique_id & request_row == `request_row_`i'' 
+			cap replace email_matched 		= 1 if database_email 			== request_email	 & request_row == `request_row_`i'' 				
+			cap replace nhis_matched 		= 1 if database_nhis 			== request_nhis		 & request_row == `request_row_`i'' 				
 			cap replace phonenumber_matched = 1 if regexm(database_phonenumber, "`request_phonenumber_`i''") & ///
 				request_row == `request_row_`i'' & !missing("`request_phonenumber_`i''")				
 		}
@@ -208,6 +208,8 @@ program define sts_compare
 		* generate serial number for each request row
 		sort request_row database_row	
 		bysort request_row: gen index = _n
+		bysort request_row: egen last_submission = max(index)
+		replace last_submission = last_submission == index
 		
 		* gen matches
 		egen matches = rowtotal(*_matched)
@@ -236,7 +238,7 @@ program define sts_compare
 		* Export unmatched
 		if `=_N' > 0 {
 			sort request_row 
-			export excel using "`outfile'", sheet("no matches", replace) firstrow(variable)
+			export excel request_row fullname email nhis using "`outfile'", sheet("no matches", replace) firstrow(variable)
 		}
 		
 		noi disp
