@@ -187,7 +187,7 @@ program define sts_compare
 			
 			
 			* Replace Request Variables
-			cap replace request_unique_id 	= "`request_unique_id_`i''" 	if request_row == `request_row_`i''
+			cap replace request_unique_id 	= `request_unique_id_`i'' 	if request_row == `request_row_`i''
 			cap replace request_phonenumber = "`request_phonenumber_`i''" 	if request_row == `request_row_`i''
 			cap replace request_email 		= "`request_email_`i''" 		if request_row == `request_row_`i''
 			cap replace request_nhis 		= "`request_nhis_`i''" 			if request_row == `request_row_`i''
