@@ -17,7 +17,7 @@ program define sts_compare
 
 		* rename variables and assign value labels to them
 		rename  (C 			D 			E		G		K		 ) ///
-				(fullname	phonenumber	email	nhis	unique_id)
+				(fullname	phonenumber	email	nhis	unique_id)	
 		
 		* label variables
 		label variable fullname 	"Full name (automatically filled)"
@@ -55,8 +55,9 @@ program define sts_compare
 		}
 		drop len_check
 		
-		* destring phone and nhis numbers
-		destring phonenumber nhis, ignore("+") replace
+		* destring phone, nhis numbers and unique_id
+		destring phonenumber, ignore("+") replace
+		destring unique_id, force replace
 		format %10.0f phonenumber
 		
 		* Check for duplicates on uniqueid, phonenumber, email, nhis
@@ -92,13 +93,20 @@ program define sts_compare
 		import excel using "`database'", sheet("Staff details") cellrange(B3) clear
 
 		* keep only relevant variables
-		keep B E F G I
+		keep B E F G I AO
 
-				* rename variables and assign value labels to them
-		rename  (E 			F 			G		I		B		 ) ///
-				(fullname	phonenumber	email	nhis	unique_id)
+		* rename variables and assign value labels to them
+		rename  (E 			F 			G		I		B		 	AO			) ///
+				(fullname	phonenumber	email	nhis	unique_id	correct_id	)
 		
+		* prefix all database variables with database
 		rename	(*) (database_*)
+		
+		* replace unique_id if the unique_id is duplicates and was corrected
+		destring database_correct_id, replace
+			replace database_correct_id = . if length(string(database_correct_id)) != 6
+			replace database_unique_id = database_correct_id if !missing(database_correct_id)
+				drop database_correct_id
 		
 		* label variables
 		label variable database_fullname 	"Full name (automatically filled)"
@@ -108,12 +116,10 @@ program define sts_compare
 		label variable database_unique_id	"IPA Unique Staff ID"
 		
 		* trim string variables
-		foreach var of varlist database_fullname database_email {
+		tostring database_nhis, replace
+		foreach var of varlist database_fullname database_email database_nhis {
 			replace `var' = trim(itrim(`var'))
 		}
-		
-		* destring nhis
-		destring database_nhis, replace force
 		
 		* Drop empty rows
 		drop if missing(database_fullname)
@@ -134,7 +140,7 @@ program define sts_compare
 		generate phonenumber_matched	= .
 		generate request_email			= ""
 		generate email_matched			= .
-		generate request_nhis			= .
+		generate request_nhis			= ""
 		generate nhis_matched			= .
 
 		* re-order variables
@@ -180,25 +186,32 @@ program define sts_compare
 			}
 
 			* look for matches in nhis
-			if !missing("`request_nhis_`i''") {
+			* for string nhis, check for a continues 4 digit or more sequence of numbers
+			gen _nhis_fmt = regexs(0) if regexm("`request_nhis_`i''", "[0-9][0-9][0-9][0-9][0-9]+")
+			loc request_nhis_`i'_fmt = _nhis_fmt[1]
+			if !missing("`request_nhis_`i'_fmt'") {
 				replace request_row = `request_row_`i'' ///
-					if database_nhis == `request_nhis_`i'' 
+					if regexm(database_nhis, "`request_nhis_`i'_fmt'")
 			}
 			
 			
 			* Replace Request Variables
-			cap replace request_unique_id 	= `request_unique_id_`i'' 	if request_row == `request_row_`i''
+			cap replace request_unique_id 	= `request_unique_id_`i'' 		if request_row == `request_row_`i''
 			cap replace request_phonenumber = "`request_phonenumber_`i''" 	if request_row == `request_row_`i''
 			cap replace request_email 		= "`request_email_`i''" 		if request_row == `request_row_`i''
-			cap replace request_nhis 		= `request_nhis_`i''			if request_row == `request_row_`i''
+			cap replace request_nhis 		= "`request_nhis_`i''"			if request_row == `request_row_`i''
 			replace request_fullname 		= "`request_fullname_`i''" 		if request_row == `request_row_`i''
 
 			* Replace match markers
-			cap replace unique_id_matched 	= 1 if database_unique_id 	== request_unique_id & request_row == `request_row_`i'' 
+			cap replace unique_id_matched 	= 1 if database_unique_id 		== request_unique_id & request_row == `request_row_`i'' 
 			cap replace email_matched 		= 1 if database_email 			== request_email	 & request_row == `request_row_`i'' 				
-			cap replace nhis_matched 		= 1 if database_nhis 			== request_nhis		 & request_row == `request_row_`i'' 				
+			cap replace nhis_matched 		= 1 if regexm(database_nhis, "`request_nhis_`i'_fmt'")			 & ///
+				request_row == `request_row_`i'' & !missing("`request_nhis_`i'_fmt'")			
 			cap replace phonenumber_matched = 1 if regexm(database_phonenumber, "`request_phonenumber_`i''") & ///
-				request_row == `request_row_`i'' & !missing("`request_phonenumber_`i''")				
+				request_row == `request_row_`i'' & !missing("`request_phonenumber_`i''")
+
+			* drop _nhis_fmt
+			drop _nhis_fmt
 		}
 		
 		foreach var of varlist *_matched {
@@ -213,6 +226,10 @@ program define sts_compare
 		
 		* gen matches
 		egen matches = rowtotal(*_matched)
+		
+		* convert matches to string yes
+		label define yesno 0 "no" 1 "yes"
+		label values *_matched last_submission yesno
 		
 		keep if matches >= 1
 		
