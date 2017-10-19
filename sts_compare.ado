@@ -12,7 +12,7 @@ program define sts_compare
 
 		* IMPORT AND SAVE REQUEST
 		*------------------------
-		import excel using "`using'", sheet("Staff Details") cellrange(C5) clear
+		import excel using "`using'", sheet("Staff Details") cellrange(C5) allstring clear
 		keep C D E G K
 
 		* rename variables and assign value labels to them
