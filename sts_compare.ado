@@ -201,15 +201,18 @@ program define sts_compare
 			cap replace request_email 		= "`request_email_`i''" 		if request_row == `request_row_`i''
 			cap replace request_nhis 		= "`request_nhis_`i''"			if request_row == `request_row_`i''
 			replace request_fullname 		= "`request_fullname_`i''" 		if request_row == `request_row_`i''
-
+			set trace on
 			* Replace match markers
-			cap replace unique_id_matched 	= 1 if database_unique_id 		== request_unique_id & request_row == `request_row_`i'' 
-			cap replace email_matched 		= 1 if database_email 			== request_email	 & request_row == `request_row_`i'' 				
-			cap replace nhis_matched 		= 1 if regexm(database_nhis, "`request_nhis_`i'_fmt'")			 & ///
-				request_row == `request_row_`i'' & !missing("`request_nhis_`i'_fmt'")			
-			cap replace phonenumber_matched = 1 if regexm(database_phonenumber, "`request_phonenumber_`i''") & ///
-				request_row == `request_row_`i'' & !missing("`request_phonenumber_`i''")
-
+			replace unique_id_matched 	= 1 if database_unique_id 		== request_unique_id & request_row == `request_row_`i'' 
+			
+			* For the variables that can be missing, check that it is not before replacing
+			if !missing("`request_email_`i''") 			replace email_matched 		= 1 if regexm(database_email, "`request_email_`i''") 				& ///
+																						request_row == `request_row_`i'' 				
+			if !missing("`request_nhis_`i'_fmt'") 		replace nhis_matched 		= 1 if regexm(database_nhis, "`request_nhis_`i'_fmt'")				& ///
+																						request_row == `request_row_`i'' 			
+			if !missing("`request_phonenumber_`i''") 	replace phonenumber_matched = 1 if regexm(database_phonenumber, "`request_phonenumber_`i''") 	& ///
+																						request_row == `request_row_`i''
+			set trace off
 			* drop _nhis_fmt
 			drop _nhis_fmt
 		}
