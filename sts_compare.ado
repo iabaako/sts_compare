@@ -43,7 +43,7 @@ program define sts_compare
 			if _rc {
 				sort request_row
 				noi disp in red "The following are missing for `var' in Contract Request"
-				noi list request_row fullname if missing(`var')	abbrev(32) noobs sep(1) 
+				noi list request_row fullname if missing(`var'), abbrev(32) noobs sep(1) 
 			}
 		}
 		
