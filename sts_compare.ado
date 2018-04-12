@@ -1,4 +1,4 @@
-*! version 0.0 Ishmail Azindoo Baako (IPA) October, 2017
+*! version 1.0 Ishmail Azindoo Baako (IPA) Apr, 2018
 cap version 13.1 
 program define sts_compare
 	syntax using/, DATAbase(string) OUTfile(string)
@@ -12,7 +12,7 @@ program define sts_compare
 
 		* IMPORT AND SAVE REQUEST
 		*------------------------
-		import excel using "`using'", sheet("Staff details") cellrange(C5) allstring clear
+		import excel using "`using'", sheet("Staff details") cellrange(E3) allstring clear
 		keep E F G J N
 
 		* rename variables and assign value labels to them
