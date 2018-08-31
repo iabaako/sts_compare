@@ -12,11 +12,11 @@ program define sts_compare
 
 		* IMPORT AND SAVE REQUEST
 		*------------------------
-		import excel using "`using'", sheet("Staff details") cellrange(E3) allstring clear
-		keep E F G J N
+		import excel using "`using'", sheet("Request") cellrange(E5) allstring clear
+		keep E I K P W
 
 		* rename variables and assign value labels to them
-		rename  (E 			F 			G		J		N		 ) ///
+		rename  (E 			I 			K		P		W		 ) ///
 				(fullname	phonenumber	email	nhis	unique_id)	
 		
 		* label variables
